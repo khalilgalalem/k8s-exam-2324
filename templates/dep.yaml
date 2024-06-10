@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec: 
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: 8010
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory | default "64Mi" }}
+              cpu: {{ .Values.resources.requests.cpu | default "250m" }}
+            limits:
+              memory: {{ .Values.resources.limits.memory | default "128Mi" }}
+              cpu: {{ .Values.resources.limits.cpu | default "500m" }}
+        volumeMounts:
+        - name: mathapp-persistent-storage
+          mountPath: /tmp/data
+      volumes:
+      - name: mathapp-persistent-storage
+        persistentVolumeClaim:
+          claimName: math-pv-claim
